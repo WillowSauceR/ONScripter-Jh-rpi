@@ -1,0 +1,30 @@
+name: Makefile CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        apt update
+        apt install make g++ git libsdl2-dev liblua5.1-0-dev libsdl2-image-dev libsdl2-ttf-dev -y
+        apt install libsdl2-mixer-dev libbz2-dev libfontconfig-dev libogg-dev libjpeg-dev libvorbis-dev -y
+      
+    - name: modify make file
+      run: |
+        sed -i 's/\/usr\/include\/lua/\/usr\/include\/lua5.1/g' Makefile.Linux
+        sed -i 's/DEFS += -DUSE_SIMD -DUSE_SIMD_X86_SSE2/#DEFS += -DUSE_SIMD -DUSE_SIMD_X86_SSE2/g' Makefile.Linux
+        sed -i 's/-llua/-llua5.1/g' Makefile.Linux
+        
+    - name: build
+      run: make -f Makefile.Linux
+
+    - name: check
+      run: ./onscripter -v
